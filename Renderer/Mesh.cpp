@@ -78,23 +78,9 @@ void Mesh::makeTriangle()
 
 void Mesh::makeQuad()
 {
-    // Second parameter is now the surface normal!
-    mVertices = {
-        {{-0.5f, -0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        {{0.5f, -0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-        {{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
-        {{-0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}}
-    };
-
-    mIndices = {
-        0, 1, 2, 2, 3, 0
-    };
-}
-
-void Mesh::makeObj()
-{
+    LOGE("Loading file");
     std::ifstream fileIn;
-    fileIn.open( PATH + "Assets/" + mFileName, std::ifstream::in);
+    fileIn.open( PATH + "../data/VertexData.txt", std::ifstream::in);
     if(!fileIn)
     {
         LOGE("ERROR: Could not load mesh!");
@@ -103,108 +89,63 @@ void Mesh::makeObj()
         makeTriangle();
     }
 
+
+
     std::string oneLine;
     std::string oneWord;
     std::vector<glm::vec3> tempVertices;
     std::vector<glm::vec3> tempNormals;
     std::vector<glm::vec2> tempUVs;
 
-    unsigned int temp_index = 0;
-    while(std::getline(fileIn,oneLine))
-    {
+    tempVertices.push_back({0,0,0});
+    tempUVs.push_back({0,0});
+
+    std::getline(fileIn,oneLine);
+
+
+
+    int i = 0;
+
+    double smallestX = 10000000000000.f, smallestY = 10000000000000.f;
+
+    while(std::getline(fileIn,oneLine)){
         std::stringstream sStream;
         sStream << oneLine;
         oneWord = "";
         sStream >> oneWord;
-        if(oneWord == "#")  // comment
-            continue;
+        double x = std::stod(oneWord);
+        sStream >> oneWord;
+        double y = std::stod(oneWord);
+        sStream >> oneWord;
+        double z = std::stod(oneWord);
 
-        if (oneWord == "")  // empty line
-            continue;
 
-        if(oneWord == "v")  // vertex
-        {
-            glm::vec3 tempVertex;
-            sStream >> oneWord;
-            tempVertex.x = std::stof(oneWord);
-            sStream >>oneWord;
-            tempVertex.y = std::stof(oneWord);
-            sStream >>oneWord;
-            tempVertex.z = std::stof(oneWord);
-            tempVertices.push_back(tempVertex);
+        tempVertices.push_back({x,y,z});
 
-            continue;
+        if(smallestX > x){
+            smallestX = x;
         }
-        if(oneWord == "vt") // uv coordinate
-        {
-            glm::vec2 tempUV;
-            sStream >> oneWord;
-            tempUV.x = std::stof(oneWord);
-            sStream >> oneWord;
-            tempUV.y = std::stof(oneWord);
-            tempUVs.push_back(tempUV);
 
-            continue;
+        if(smallestY > y){
+            smallestY = y;
         }
-        if(oneWord == "vn") // normal
-        {
-            glm::vec3 tempNormal;
-            sStream >> oneWord;
-            tempNormal.x = std::stof(oneWord);
-            sStream >> oneWord;
-            tempNormal.y = std::stof(oneWord);
-            sStream >> oneWord;
-            tempNormal.z = std::stof(oneWord);
-            tempNormals.push_back(tempNormal);
 
-            continue;
-        }
-        if(oneWord == "f")  // face
-        {
-            int index, normal, uv;
-            for(int i = 0; i<3; i++)
-            {
-                sStream >> oneWord;
-                std::stringstream tempWord(oneWord);
-                std::string segment;
-                std::vector<std::string> segmentArray;
-
-                while(std::getline(tempWord, segment, '/'))
-                    segmentArray.push_back(segment);
-
-                index =std::stoi(segmentArray[0]);
-
-                if(segmentArray[1] !="")
-                    uv = std::stoi(segmentArray[1]);
-                else
-                    uv = 0;
-
-                normal = std::stoi(segmentArray[2]);
-
-                // obj indexes starts at 1, C++ starts at 0
-                index--;
-                uv--;
-                normal--;
-
-                if(uv > -1)
-                {
-                    Vertex tempVertex{tempVertices[index],tempNormals[normal] ,tempUVs[uv]};
-                    mVertices.push_back(tempVertex);
-                }
-                else
-                {
-                    Vertex tempVertex{tempVertices[index],tempNormals[normal] ,glm::vec2{0,0}};
-                    mVertices.push_back(tempVertex);
-                }
-
-                mIndices.push_back(temp_index++);
-            }
-            continue;
-        }
+        i++;
     }
-    fileIn.close();
+     LOGE("Read file. Loading triangles...");
+    for(int j = 0; j < i-1;  j++){
+        tempVertices[i].x -= smallestX;
+        tempVertices[i].y -= smallestY;
+        Vertex tVertex = {tempVertices[i], tempNormals[0], tempUVs[0]};
+        mVertices.push_back(tVertex);
+    }
+LOGE("Success");
 
-    LOGP("obj file %s made into a mesh!", mFileName.c_str());
+}
+
+void Mesh::makeObj()
+{
+    makeTriangle();
 }
 
 

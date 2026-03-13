@@ -6,6 +6,7 @@ layout(location = 2) in vec2 inTexCoord;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
+layout(location = 2) out float PointSize;
 
 layout(binding = 0) uniform UniformBufferObject {
     mat4 model;
@@ -22,4 +23,5 @@ void main() {
             vec4(inPosition, 1.0); // the last parameter is the w-component (homogeneous coordinates).
     fragColor = inColor;
     fragTexCoord = inTexCoord;
+    PointSize = 3.f;
 }
